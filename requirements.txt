@@ -1,2 +1,13 @@
-uvicorn~=0.34.0
-fastapi~=0.115.7
+uvicorn
+fastapi
+odmantic
+pydantic
+pydantic_settings
+email-validator
+starlette
+motor
+passlib[bcrypt]
+python-jose[cryptography]
+fastapi[all]
+pytest
+httpx
