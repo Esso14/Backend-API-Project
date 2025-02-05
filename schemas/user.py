@@ -35,7 +35,7 @@ class UserEnrollmentModel(BaseModel):
 
 
 class UserBaseInfos(BaseModel):
-    id: ObjectId
+    id: str
     username: str
     firstName: str
     lastName: str

@@ -1,17 +1,27 @@
 from fastapi import APIRouter, HTTPException
 from models.user import UserModel
-from schemas.user import NewUser
+from schemas.user import NewUser, UserBaseInfos
 from settings import engine
-from OIDCAuthentification import get_password_hash
+from OIDCAuthentification import get_password_hash, verify_password
 
 router = APIRouter()
 
 #User login
-@router.get("/login", response_model=UserModel)
+@router.get("/login", response_model=UserBaseInfos)
 async def login_user(username: str, password: str):
-    user = await engine.find_one(UserModel, username=username, passwort=get_password_hash(password))
-    if user:
-        return user
+    #hashed_password = get_password_hash(password)
+    user = await engine.find_one(UserModel, UserModel.username == username)
+    if user and verify_password(password, user.hash_password):
+        return UserBaseInfos(
+            id=str(user.id),
+            username=user.username,
+            firstName=user.firstName,
+            lastName=user.lastName,
+            permissionFor=user.permissionFor,
+            email=user.email,
+            disabled=user.disabled,
+        )
+
     raise HTTPException(status_code=400, detail="Incorrect username or password")
 
 
