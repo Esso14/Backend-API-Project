@@ -1,29 +1,27 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Depends
 from models.user import UserModel
 from schemas.user import NewUser, UserBaseInfos
 from settings import engine
-from OIDCAuthentification import get_password_hash, verify_password
+from OIDCAuthentification import get_password_hash, verify_password, get_current_user, get_current_active_user
 
 router = APIRouter()
 
-#User login
-@router.get("/login", response_model=UserBaseInfos)
-async def login_user(username: str, password: str):
-    #hashed_password = get_password_hash(password)
-    user = await engine.find_one(UserModel, UserModel.username == username)
-    if user and verify_password(password, user.hash_password):
-        return UserBaseInfos(
-            id=str(user.id),
-            username=user.username,
-            firstName=user.firstName,
-            lastName=user.lastName,
-            permissionFor=user.permissionFor,
-            email=user.email,
-            disabled=user.disabled,
-        )
-
-    raise HTTPException(status_code=400, detail="Incorrect username or password")
-
+# Get me
+@router.get("/user/me/", response_model=UserBaseInfos)
+#@router.get("/user/me/", response_model=UserModel)
+async def get_me(current_user: Annotated[UserModel, Depends(get_current_user)]):
+    #return current_user
+    return UserBaseInfos(
+        id=str(current_user.id),
+        username=current_user.username,
+        firstName=current_user.firstName,
+        lastName=current_user.lastName,
+        permissionFor=current_user.permissionFor,
+        email=current_user.email,
+        disabled=current_user.disabled,
+    )
 
 @router.post("/user/new/", response_model=UserModel)
 async def create_user(user: NewUser):
@@ -39,7 +37,3 @@ async def create_user(user: NewUser):
     return user_instanz
 
 
-#@app.post("/user", response_model=User)
-#async def create_user(user: User):
-#    await engine.save(user)
-#    return user
